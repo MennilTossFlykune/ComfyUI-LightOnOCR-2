@@ -84,6 +84,10 @@ class LightOnOCR2Run:
                 "model": ("LIGHTONOCR2_MODEL",),
                 "image": ("IMAGE",),
                 "max_tokens": ("INT", {"default": 1024, "min": 64, "max": 8192, "step": 64}),
+                "seed": ("INT", {"default": 42, "min": 0, "max": 0xFFFFFFFF}),
+                "do_sample": ("BOOLEAN", {"default": True}),
+                "temperature": ("FLOAT", {"default": 0.2, "min": 0.01, "max": 2.0, "step": 0.01}),
+                "top_p": ("FLOAT", {"default": 0.9, "min": 0.0, "max": 1.0, "step": 0.01}),
             }
         }
 
@@ -92,7 +96,7 @@ class LightOnOCR2Run:
     FUNCTION = "run_ocr"
     CATEGORY = "LightOnOCR-2"
 
-    def run_ocr(self, model, image, max_tokens):
+    def run_ocr(self, model, image, max_tokens, seed, do_sample, temperature, top_p):
         ocr_model = model["model"]
         processor = model["processor"]
         device = model["device"]
@@ -121,7 +125,16 @@ class LightOnOCR2Run:
             for k, v in inputs.items()
         }
 
-        output_ids = ocr_model.generate(**inputs, max_new_tokens=max_tokens)
+        torch.manual_seed(seed)
+        if device == "cuda":
+            torch.cuda.manual_seed(seed)
+
+        generate_kwargs = {"max_new_tokens": max_tokens, "do_sample": do_sample}
+        if do_sample:
+            generate_kwargs["temperature"] = temperature
+            generate_kwargs["top_p"] = top_p
+
+        output_ids = ocr_model.generate(**inputs, **generate_kwargs)
         generated_ids = output_ids[0, inputs["input_ids"].shape[1]:]
         output_text = processor.decode(generated_ids, skip_special_tokens=True)
 
