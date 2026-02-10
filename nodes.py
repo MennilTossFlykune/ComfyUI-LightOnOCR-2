@@ -22,6 +22,9 @@ MODEL_VARIANTS = [
 
 
 class LightOnOCR2ModelLoader:
+    _cached_model = None
+    _cached_key = None
+
     @classmethod
     def INPUT_TYPES(cls):
         return {
@@ -36,6 +39,9 @@ class LightOnOCR2ModelLoader:
     RETURN_NAMES = ("model",)
     FUNCTION = "load_model"
     CATEGORY = "LightOnOCR-2"
+    @classmethod
+    def IS_CHANGED(cls, **kwargs):
+        return float("NaN")
 
     def load_model(self, model_name, device, dtype):
         if device == "auto":
@@ -54,12 +60,20 @@ class LightOnOCR2ModelLoader:
         }
         torch_dtype = dtype_map[dtype]
 
-        model = LightOnOcrForConditionalGeneration.from_pretrained(
-            model_name, torch_dtype=torch_dtype
-        ).to(device)
-        processor = LightOnOcrProcessor.from_pretrained(model_name)
+        cache_key = (model_name, device, dtype)
+        if LightOnOCR2ModelLoader._cached_key == cache_key and LightOnOCR2ModelLoader._cached_model is not None:
+            return (LightOnOCR2ModelLoader._cached_model,)
 
-        return ({"model": model, "processor": processor, "device": device, "dtype": torch_dtype},)
+        model = LightOnOcrForConditionalGeneration.from_pretrained(
+            model_name, torch_dtype=torch_dtype, local_files_only=True
+        ).to(device)
+        processor = LightOnOcrProcessor.from_pretrained(model_name, local_files_only=True)
+
+        result = {"model": model, "processor": processor, "device": device, "dtype": torch_dtype}
+        LightOnOCR2ModelLoader._cached_model = result
+        LightOnOCR2ModelLoader._cached_key = cache_key
+
+        return (result,)
 
 
 class LightOnOCR2Run:
