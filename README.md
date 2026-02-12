@@ -41,7 +41,11 @@ Runs OCR on an image and outputs the extracted text.
 |-------|------|-------------|
 | `model` | LIGHTONOCR2_MODEL | Output from the Model Loader node |
 | `image` | IMAGE | Any ComfyUI image |
-| `max_tokens` | INT | Maximum output tokens (default: 1024) |
+| `max_tokens` | INT | Maximum output tokens (default: 1024, range: 64-8192) |
+| `seed` | INT | Random seed for reproducibility (default: 42) |
+| `do_sample` | BOOLEAN | Enable sampling; when off, uses greedy decoding (default: True) |
+| `temperature` | FLOAT | Sampling temperature (default: 0.2, range: 0.01-2.0) |
+| `top_p` | FLOAT | Top-p / nucleus sampling threshold (default: 0.9, range: 0.0-1.0) |
 
 | Output | Type |
 |--------|------|
