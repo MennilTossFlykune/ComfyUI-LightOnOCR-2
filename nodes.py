@@ -65,9 +65,9 @@ class LightOnOCR2ModelLoader:
             return (LightOnOCR2ModelLoader._cached_model,)
 
         model = LightOnOcrForConditionalGeneration.from_pretrained(
-            model_name, torch_dtype=torch_dtype, local_files_only=True
+            model_name, torch_dtype=torch_dtype, local_files_only=False
         ).to(device)
-        processor = LightOnOcrProcessor.from_pretrained(model_name, local_files_only=True)
+        processor = LightOnOcrProcessor.from_pretrained(model_name, local_files_only=False)
 
         result = {"model": model, "processor": processor, "device": device, "dtype": torch_dtype}
         LightOnOCR2ModelLoader._cached_model = result
